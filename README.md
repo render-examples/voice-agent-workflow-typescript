@@ -62,8 +62,13 @@ A demo showcasing [Render Workflows](https://docs.render.com/workflows) with a v
 ### Manual deploy
 
 1. Fork or push this repo to GitHub.
-2. In the [Render Dashboard](https://dashboard.render.com/), click **New** > **Blueprint**.
-3. Connect your GitHub repo — Render creates the frontend, API, agent, and workflow services from `render.yaml`.
+2. In the [Render Dashboard](https://dashboard.render.com/), switch to your dedicated workspace.
+3. Click **New** > **Blueprint**.
+4. Connect your GitHub repo and deploy from branch `deploy/ts-voice-agent-render-workspace`.
+5. Render creates the frontend, API, and agent services from `render.yaml` with TS-specific service names:
+   - `voice-agent-ts-frontend`
+   - `voice-agent-ts-api`
+   - `voice-agent-ts-agent`
 
 ### Configure environment groups
 
@@ -76,6 +81,14 @@ The Blueprint references three environment groups. Create them in the Render Das
 | `ai-config` | `OPENAI_API_KEY` | [OpenAI API keys](https://platform.openai.com/api-keys) |
 
 `WORKFLOW_SERVICE_ID` is the slug of your Render Workflows service (visible in the Dashboard URL).
+
+### Dedicated workspace checklist
+
+Before finalizing deploy, confirm:
+
+- You selected the intended Render workspace in the top-left workspace switcher.
+- The three env groups (`livekit-config`, `render-config`, `ai-config`) exist in that same workspace.
+- `WORKFLOW_SERVICE_ID` points to the workflow service in that same workspace (not another team/personal workspace).
 
 ## Local development
 

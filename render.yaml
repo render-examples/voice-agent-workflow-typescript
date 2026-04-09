@@ -1,12 +1,12 @@
 projects:
-  - name: insurance-voice-demo
+  - name: voice-agent-workflow-ts
     environments:
       - name: production
         services:
           # Frontend - React Static Site
           - type: web
             runtime: static
-            name: insurance-demo-frontend
+            name: voice-agent-ts-frontend
             rootDir: frontend
             buildCommand: npm install && npm run build
             staticPublishPath: dist
@@ -14,7 +14,7 @@ projects:
             envVars:
               - key: VITE_API_HOST
                 fromService:
-                  name: insurance-demo-api
+                  name: voice-agent-ts-api
                   type: web
                   property: host
             headers:
@@ -29,7 +29,7 @@ projects:
           # API Server - FastAPI
           - type: web
             runtime: python
-            name: insurance-demo-api
+            name: voice-agent-ts-api
             rootDir: api
             plan: starter
             buildCommand: pip install -r requirements.txt
@@ -42,7 +42,7 @@ projects:
           # LiveKit Agent - Must be a worker (persistent connection to LiveKit)
           - type: worker
             runtime: python
-            name: insurance-demo-agent
+            name: voice-agent-ts-agent
             rootDir: agent
             plan: starter
             buildCommand: pip install -r requirements.txt
@@ -52,7 +52,7 @@ projects:
               - fromGroup: ai-config
               - key: API_HOST
                 fromService:
-                  name: insurance-demo-api
+                  name: voice-agent-ts-api
                   type: web
                   property: host
 
