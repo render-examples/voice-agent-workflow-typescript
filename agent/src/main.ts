@@ -7,7 +7,6 @@ import {
   llm,
   voice,
 } from "@livekit/agents";
-import * as livekit from "@livekit/agents-plugin-livekit";
 import * as openai from "@livekit/agents-plugin-openai";
 import * as silero from "@livekit/agents-plugin-silero";
 import { fileURLToPath } from "node:url";
@@ -252,7 +251,6 @@ export default defineAgent({
       stt: new openai.STT(),
       tts: new openai.TTS({ model: "gpt-4o-mini-tts", voice: "alloy" }),
       llm: new openai.LLM({ model: "gpt-4o" }),
-      turnDetection: new livekit.turnDetector.EnglishModel(),
     });
 
     await session.start({ room: ctx.room, agent });

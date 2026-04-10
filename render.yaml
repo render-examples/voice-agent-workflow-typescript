@@ -46,7 +46,7 @@ projects:
             name: voice-agent-ts-agent
             rootDir: agent
             plan: starter
-            buildCommand: npm install && npm run build && npm run download-files
+            buildCommand: npm install && npm run build
             startCommand: npm start
             envVars:
               - fromGroup: livekit-config
