@@ -63,14 +63,22 @@ Guidelines:
 - If customer is Platinum/Gold tier, acknowledge their loyalty`;
 
 function getApiUrl(): string {
+  const apiUrl = process.env.API_URL;
+  if (apiUrl) {
+    return apiUrl;
+  }
+
   const apiHost = process.env.API_HOST;
   if (apiHost) {
+    if (apiHost.startsWith("http://") || apiHost.startsWith("https://")) {
+      return apiHost;
+    }
     if (apiHost.includes(".onrender.com")) {
       return `https://${apiHost}`;
     }
     return `https://${apiHost}.onrender.com`;
   }
-  return process.env.API_URL ?? "http://api:8000";
+  return "http://api:8000";
 }
 
 type SessionUpdatePayload = {
@@ -79,16 +87,24 @@ type SessionUpdatePayload = {
   value: string;
 };
 
-async function updateSession(roomName: string, field: string, value: string): Promise<void> {
+async function updateSession(roomName: string, field: string, value: string): Promise<boolean> {
   const payload: SessionUpdatePayload = { room_name: roomName, field, value };
-  const response = await fetch(`${getApiUrl()}/api/session/update`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  const apiBase = getApiUrl();
+  try {
+    const response = await fetch(`${apiBase}/api/session/update`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-  if (!response.ok) {
-    throw new Error(`Session update failed (${response.status})`);
+    if (!response.ok) {
+      console.error(`[agent] Session update failed (${response.status}) for ${field} via ${apiBase}`);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error(`[agent] Session update error for ${field} via ${apiBase}:`, error);
+    return false;
   }
 }
 
