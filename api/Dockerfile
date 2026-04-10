@@ -1,15 +1,14 @@
-FROM python:3.12-slim
+FROM node:22-slim
 
 WORKDIR /app
 
 # Install dependencies
-COPY api/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY api/package.json api/tsconfig.json ./
+RUN npm install
 
-# Copy source
-COPY api/ ./api/
+COPY api/src ./src
+RUN npm run build
 
 EXPOSE 8000
-
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["npm", "start"]
 

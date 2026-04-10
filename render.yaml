@@ -26,27 +26,28 @@ projects:
                 source: /*
                 destination: /index.html
 
-          # API Server - FastAPI
+          # API Server - Express (TypeScript)
           - type: web
-            runtime: python
+            runtime: node
             name: voice-agent-ts-api
             rootDir: api
             plan: starter
-            buildCommand: pip install -r requirements.txt
-            startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+            buildCommand: npm install && npm run build
+            startCommand: npm start
             healthCheckPath: /api/health
             envVars:
               - fromGroup: livekit-config
               - fromGroup: render-config
+              - fromGroup: ai-config
 
-          # LiveKit Agent - Must be a worker (persistent connection to LiveKit)
+          # LiveKit Agent - TypeScript worker
           - type: worker
-            runtime: python
+            runtime: node
             name: voice-agent-ts-agent
             rootDir: agent
             plan: starter
-            buildCommand: pip install -r requirements.txt
-            startCommand: python main.py start
+            buildCommand: npm install && npm run build
+            startCommand: npm start
             envVars:
               - fromGroup: livekit-config
               - fromGroup: ai-config

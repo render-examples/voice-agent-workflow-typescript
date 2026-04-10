@@ -99,10 +99,11 @@ export async function getLatestClaim(): Promise<Claim | null> {
 }
 
 export interface SessionTask {
-  status: "running" | "completed";
-  result?: Record<string, unknown>;
+  status: "running" | "completed" | "failed";
+  result?: unknown;
   started_at?: string;
   completed_at?: string;
+  error?: string;
 }
 
 export interface CallSession {

@@ -237,7 +237,7 @@ function ActiveCall({ onCallEnd, roomName }: { onCallEnd: () => void; roomName: 
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="text-sm text-neutral-900">{TASK_LABELS[taskName] || taskName}</div>
-                    {task.status === 'completed' && task.result && (
+                    {task.status === 'completed' && Boolean(task.result) && (
                       <div className="text-xs mt-0.5">
                         {taskName === 'verify_policy' && (
                           <span className={(task.result as any).status === 'active' ? 'text-emerald-600' : 'text-amber-600'}>
@@ -260,7 +260,7 @@ function ActiveCall({ onCallEnd, roomName }: { onCallEnd: () => void; roomName: 
                         )}
                         {taskName === 'find_shops' && (
                           <span className="text-emerald-600">
-                            Found {(task.result as any).shops?.length} shops
+                            Found {Array.isArray(task.result) ? task.result.length : (task.result as any).shops?.length} shops
                           </span>
                         )}
                       </div>

@@ -1,2 +1,0 @@
-render_sdk>=0.6.0
-openai>=2.24.0

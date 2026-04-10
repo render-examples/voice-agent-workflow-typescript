@@ -1,5 +1,5 @@
 services:
-  # FastAPI Backend
+  # TypeScript Backend API
   api:
     build:
       context: .
@@ -16,10 +16,11 @@ services:
       - RENDER_LOCAL_DEV_URL=http://host.docker.internal:8120
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
-      - ./api:/app/api
-    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+      - ./api:/app
+      - /app/node_modules
+    command: npm run dev
 
-  # LiveKit Voice Agent
+  # LiveKit Voice Agent (TypeScript)
   agent:
     build:
       context: .
@@ -33,8 +34,9 @@ services:
     depends_on:
       - api
     volumes:
-      - ./agent:/app/agent
-    command: python agent/main.py start
+      - ./agent:/app
+      - /app/node_modules
+    command: npm run dev
 
   # Frontend (Vite dev server)
   frontend:

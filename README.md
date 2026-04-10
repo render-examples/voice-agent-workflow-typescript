@@ -20,7 +20,7 @@ A demo showcasing [Render Workflows](https://docs.render.com/workflows) with a v
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │    Frontend      │────▶│   API Server    │────▶│   Render        │
-│  React + Vite   │     │    FastAPI       │     │   Workflows     │
+│  React + Vite   │     │  Express (TS)    │     │   Workflows     │
 └────────┬────────┘     └─────────────────┘     └─────────────────┘
          │                       ▲
          │              ┌────────┴────────┐
@@ -32,9 +32,9 @@ A demo showcasing [Render Workflows](https://docs.render.com/workflows) with a v
 | Service | Description |
 |---------|-------------|
 | **Frontend** | React app with LiveKit client SDK for voice calls and real-time task progress |
-| **API** | FastAPI server that issues LiveKit tokens, manages sessions, and triggers workflow tasks via the Render SDK |
+| **API** | TypeScript Express server that issues LiveKit tokens, manages sessions, and triggers workflow tasks via the Render SDK |
 | **Agent** | LiveKit Agents worker that handles voice conversations using OpenAI (GPT-4o for LLM, Whisper for STT, TTS for speech) |
-| **Workflows** | Render Workflows service with `@app.task` definitions for each claim processing step |
+| **Workflows** | Render Workflows service with TypeScript `task()` definitions for each claim processing step |
 
 ## Prerequisites
 
@@ -72,7 +72,7 @@ A demo showcasing [Render Workflows](https://docs.render.com/workflows) with a v
 
 ### Configure environment groups
 
-The Blueprint references three environment groups. Create them in the Render Dashboard under **Env Groups**:
+The Blueprint references three environment groups. Create them in the Render Dashboard under **Environment Groups**:
 
 | Group | Variables | Where to get them |
 |-------|-----------|-------------------|
@@ -97,7 +97,7 @@ Before finalizing deploy, confirm:
 ```bash
 # 1. Clone the repo
 git clone <your-repo-url>
-cd voice-agent-workflow-public
+cd voice-agent-workflow
 
 # 2. Copy and configure environment variables
 cp env.example .env
@@ -107,9 +107,10 @@ cp env.example .env
 docker compose up
 
 # 4. In a separate terminal, start the workflow dev server
+# Requires Render CLI v2.12.0+ (`render --version`)
 cd workflows
-pip install -r requirements.txt
-render workflows dev -- python main.py
+npm install
+render workflows dev -- npm start
 
 # 5. Open http://localhost:5173
 ```
@@ -120,23 +121,26 @@ render workflows dev -- python main.py
 
 ```bash
 cp env.example .env
-# Edit .env with your API keys
+# Edit .env with your API keys.
+# For local workflow simulation keep:
+#   RENDER_USE_LOCAL_DEV=true
+#   RENDER_LOCAL_DEV_URL=http://localhost:8120
 ```
 
 #### 2. Start the API server
 
 ```bash
 cd api
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+npm install
+npm run dev
 ```
 
 #### 3. Start the LiveKit agent
 
 ```bash
 cd agent
-pip install -r requirements.txt
-python main.py dev
+npm install
+npm run dev
 ```
 
 #### 4. Start the frontend
@@ -151,8 +155,9 @@ npm run dev
 
 ```bash
 cd workflows
-pip install -r requirements.txt
-render workflows dev -- python main.py
+npm install
+# Requires Render CLI v2.12.0+ (`render --version`)
+render workflows dev -- npm start
 ```
 
 Open http://localhost:5173 to run the demo.
@@ -160,21 +165,21 @@ Open http://localhost:5173 to run the demo.
 ## Project structure
 
 ```
-voice-agent-workflow-public/
+voice-agent-workflow/
 ├── frontend/              # React app (Vite + Tailwind CSS)
 │   ├── src/
 │   │   ├── components/    # Call interface, claim progress UI
 │   │   └── lib/api.ts     # API client
 │   └── package.json
-├── api/                   # FastAPI server
-│   ├── main.py            # Routes, session management, workflow triggers
-│   └── requirements.txt
+├── api/                   # TypeScript Express API
+│   ├── src/index.ts       # Routes, session management, workflow triggers
+│   └── package.json
 ├── agent/                 # LiveKit voice agent
-│   ├── main.py            # Agent with OpenAI STT/LLM/TTS
-│   └── requirements.txt
+│   ├── src/main.ts        # Agent with OpenAI STT/LLM/TTS
+│   └── package.json
 ├── workflows/             # Render Workflows task definitions
-│   ├── main.py            # @app.task definitions
-│   └── requirements.txt
+│   ├── src/tasks.ts       # task() definitions
+│   └── package.json
 ├── render.yaml            # Render Blueprint
 ├── docker-compose.yml     # Local dev orchestration
 ├── env.example            # Template for .env
@@ -183,37 +188,43 @@ voice-agent-workflow-public/
 
 ## Workflow tasks
 
-All tasks are defined in `workflows/main.py` using the Render Workflows Python SDK:
+All tasks are defined in `workflows/src/tasks.ts` using the Render Workflows TypeScript SDK:
 
-```python
-from render_sdk.workflows import Workflows
+```typescript
+import { task } from "@renderinc/sdk/workflows";
 
-app = Workflows()
+const verifyPolicy = task({ name: "verify_policy" }, async (phone: string) => {
+  // Look up and verify the customer's policy
+});
 
-@app.task
-async def verify_policy(phone: str) -> dict:
-    # Look up and verify the customer's policy
-    ...
-
-@app.task
-async def process_claim(policy_number: str, vehicle_details: dict):
-    # Orchestrate subtasks, some in parallel
-    policy = await verify_policy(policy_number)
-    await asyncio.gather(
-        analyze_damage(vehicle_details),
-        fraud_check(policy_number, vehicle_details),
-    )
-    ...
+const processClaim = task(
+  { name: "process_claim" },
+  async (policyNumber: string, vehicleDetails: Record<string, unknown>) => {
+    // Orchestrate subtasks, some in parallel
+    const policy = await verifyPolicy(policyNumber);
+    await Promise.all([analyzeDamage(vehicleDetails), fraudCheck(policyNumber)]);
+    return policy;
+  }
+);
 ```
 
-The `process_claim` task orchestrates all subtasks, running independent steps in parallel with `asyncio.gather`.
+The `process_claim` task orchestrates all subtasks, running independent steps in parallel with `Promise.all`.
+
+## Parity with Python template
+
+This TypeScript template preserves the Python template's behavior:
+
+- Same API routes and payload contracts (`/api/token`, `/api/claims`, `/api/session/*`, `/api/customer/lookup/*`, `/api/demo/profiles`, `/api/debug/workflow-test`).
+- Same voice websocket flow at `/ws/voice` (`start_session`, transcript updates, background task triggers, TTS audio responses).
+- Same workflow task set and orchestration order (`verify_policy`, `analyze_damage`, `fraud_check`, `generate_estimate`, `find_shops`, `send_notification`, `process_claim`, `conversation`, `generate_greeting`).
+- Same demo customer profiles and scenario metadata.
 
 ## Technologies
 
 - **Frontend**: React, Vite, Tailwind CSS, LiveKit React SDK
-- **API**: Python, FastAPI, Render SDK
+- **API**: TypeScript, Express, Render SDK
 - **Voice AI**: LiveKit Agents, OpenAI GPT-4o, OpenAI TTS/STT
-- **Workflows**: Render Workflows (`render_sdk`)
+- **Workflows**: Render Workflows (`@renderinc/sdk`)
 
 ## License
 

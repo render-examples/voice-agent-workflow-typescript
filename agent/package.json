@@ -1,0 +1,23 @@
+{
+  "name": "voice-agent-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "dev": "tsx watch src/main.ts"
+  },
+  "dependencies": {
+    "@livekit/agents": "^1.2.5",
+    "@livekit/agents-plugin-livekit": "^1.2.5",
+    "@livekit/agents-plugin-openai": "^1.2.5",
+    "@livekit/agents-plugin-silero": "^1.2.5",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}
