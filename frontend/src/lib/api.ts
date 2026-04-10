@@ -1,7 +1,16 @@
-const API_BASE = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
-  : import.meta.env.VITE_API_HOST
-    ? `https://${import.meta.env.VITE_API_HOST}.onrender.com/api`
+const explicitApiUrl = import.meta.env.VITE_API_URL;
+const serviceHost = import.meta.env.VITE_API_HOST;
+
+const hostBase = serviceHost
+  ? serviceHost.startsWith("http")
+    ? serviceHost
+    : `https://${serviceHost}`
+  : null;
+
+const API_BASE = explicitApiUrl
+  ? `${explicitApiUrl}/api`
+  : hostBase
+    ? `${hostBase}/api`
     : "http://localhost:8000/api";
 
 export interface TokenResponse {
