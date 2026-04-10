@@ -62,10 +62,9 @@ A demo showcasing [Render Workflows](https://docs.render.com/workflows) with a v
 ### Manual deploy
 
 1. Fork or push this repo to GitHub.
-2. In the [Render Dashboard](https://dashboard.render.com/), switch to your dedicated workspace.
-3. Click **New** > **Blueprint**.
-4. Connect your GitHub repo and deploy from branch `deploy/ts-voice-agent-render-workspace`.
-5. Render creates the frontend, API, and agent services from `render.yaml` with TS-specific service names:
+2. In the [Render Dashboard](https://dashboard.render.com/), switch to your dedicated workspace and click **New** > **Blueprint**.
+3. Connect your GitHub repo — Render creates the frontend, API, agent, and workflow services from `render.yaml`.
+4. Verify service names:
    - `voice-agent-ts-frontend`
    - `voice-agent-ts-api`
    - `voice-agent-ts-agent`
@@ -97,7 +96,7 @@ Before finalizing deploy, confirm:
 ```bash
 # 1. Clone the repo
 git clone <your-repo-url>
-cd voice-agent-workflow
+cd voice-agent-workflow-typescript
 
 # 2. Copy and configure environment variables
 cp env.example .env
@@ -165,7 +164,7 @@ Open http://localhost:5173 to run the demo.
 ## Project structure
 
 ```
-voice-agent-workflow/
+voice-agent-workflow-typescript/
 ├── frontend/              # React app (Vite + Tailwind CSS)
 │   ├── src/
 │   │   ├── components/    # Call interface, claim progress UI
