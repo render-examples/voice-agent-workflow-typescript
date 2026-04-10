@@ -55,7 +55,7 @@ projects:
                 fromService:
                   name: voice-agent-ts-api
                   type: web
-                  property: url
+                  property: host
 
 # NOTE: Environment groups are NOT defined here to prevent Blueprint from
 # overwriting values on each deploy. Create these groups manually in Dashboard:

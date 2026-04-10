@@ -65,7 +65,10 @@ Guidelines:
 function getApiUrl(): string {
   const apiUrl = process.env.API_URL;
   if (apiUrl) {
-    return apiUrl;
+    if (apiUrl.startsWith("http://") || apiUrl.startsWith("https://")) {
+      return apiUrl;
+    }
+    return `https://${apiUrl}`;
   }
 
   const apiHost = process.env.API_HOST;
