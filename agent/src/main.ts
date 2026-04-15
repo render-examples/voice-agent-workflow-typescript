@@ -223,9 +223,9 @@ export default defineAgent({
 
     const save_other_party_info = llm.tool({
       description: "Save information about other vehicles involved.",
-      parameters: z.object({ involved: z.boolean(), info: z.string().optional() }),
+      parameters: z.object({ involved: z.boolean(), info: z.string().nullable().optional() }),
       execute: async ({ involved, info }) => {
-        const safeInfo = info ?? "yes";
+        const safeInfo = typeof info === "string" ? info : "yes";
         await updateSession(roomName, "other_party", involved ? safeInfo : "none");
         return "Other party information recorded.";
       },
@@ -239,7 +239,7 @@ export default defineAgent({
         damage_description: z.string(),
         zip_code: z.string(),
         other_vehicles_involved: z.boolean().optional(),
-        other_party_info: z.string().optional(),
+        other_party_info: z.string().nullable().optional(),
       }),
       execute: async ({
         phone,
@@ -256,7 +256,10 @@ export default defineAgent({
               location,
               damage: damage_description,
               zip: zip_code,
-              other_party: other_vehicles_involved ? (other_party_info ?? "") : undefined,
+              other_party:
+                other_vehicles_involved && typeof other_party_info === "string"
+                  ? other_party_info
+                  : undefined,
             },
           });
           return `Claim submitted successfully. The claim number is ${claimId}.`;
