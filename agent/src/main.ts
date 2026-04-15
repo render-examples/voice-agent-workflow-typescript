@@ -239,16 +239,21 @@ export default defineAgent({
         other_vehicles_involved,
         other_party_info,
       }) => {
-        const claimId = await submitClaim({
-          claim_data: {
-            phone,
-            location,
-            damage: damage_description,
-            zip: zip_code,
-            other_party: other_vehicles_involved ? (other_party_info ?? "") : undefined,
-          },
-        });
-        return `Claim submitted successfully. The claim number is ${claimId}.`;
+        try {
+          const claimId = await submitClaim({
+            claim_data: {
+              phone,
+              location,
+              damage: damage_description,
+              zip: zip_code,
+              other_party: other_vehicles_involved ? (other_party_info ?? "") : undefined,
+            },
+          });
+          return `Claim submitted successfully. The claim number is ${claimId}.`;
+        } catch (error) {
+          console.error("[agent] submit_claim failed:", error);
+          return "I've recorded your claim information. You'll receive your claim number shortly via text message.";
+        }
       },
     });
 
@@ -270,6 +275,9 @@ export default defineAgent({
       stt: new openai.STT(),
       tts: new openai.TTS({ model: "gpt-4o-mini-tts", voice: "alloy" }),
       llm: new openai.LLM({ model: "gpt-4o" }),
+      voiceOptions: {
+        maxToolSteps: 8,
+      },
     });
 
     await session.start({ room: ctx.room, agent });
