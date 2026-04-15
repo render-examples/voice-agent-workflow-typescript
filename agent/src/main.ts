@@ -109,6 +109,15 @@ type SessionUpdatePayload = {
   value: string;
 };
 
+function resolveRoomName(ctx: JobContext): string {
+  const fallbackFromJob = (ctx as { job?: { room?: { name?: string } } }).job?.room?.name;
+  const roomName = ctx.room?.name ?? fallbackFromJob;
+  if (roomName && roomName.trim().length > 0) {
+    return roomName;
+  }
+  return "unknown-room";
+}
+
 async function updateSession(roomName: string, field: string, value: string): Promise<boolean> {
   const payload: SessionUpdatePayload = { room_name: roomName, field, value };
   const apiBase = getApiUrl();
@@ -161,7 +170,8 @@ export default defineAgent({
     proc.userData.vad = await silero.VAD.load();
   },
   entry: async (ctx: JobContext) => {
-    const roomName = ctx.room.name ?? "unknown-room";
+    const roomName = resolveRoomName(ctx);
+    console.log(`[agent] session room resolved: ${roomName}`);
 
     const save_safety_status = llm.tool({
       description: "Save that safety has been confirmed.",
