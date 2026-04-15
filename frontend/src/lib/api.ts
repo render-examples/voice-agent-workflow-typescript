@@ -126,20 +126,5 @@ export async function getSession(roomName: string): Promise<CallSession> {
   if (!response.ok) {
     return { collected: {}, tasks: {} };
   }
-  const data = (await response.json()) as CallSession;
-  if (Object.keys(data.collected ?? {}).length > 0 || Object.keys(data.tasks ?? {}).length > 0) {
-    return data;
-  }
-
-  // Fallback for deployments where the worker reports updates under a generic room name.
-  const fallbackResponse = await fetch(`${API_BASE}/session/unknown-room`);
-  if (!fallbackResponse.ok) {
-    return data;
-  }
-  const fallbackData = (await fallbackResponse.json()) as CallSession;
-  if (Object.keys(fallbackData.collected ?? {}).length > 0 || Object.keys(fallbackData.tasks ?? {}).length > 0) {
-    return fallbackData;
-  }
-
-  return data;
+  return response.json();
 }
