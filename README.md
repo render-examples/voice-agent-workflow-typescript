@@ -6,7 +6,7 @@ A demo showcasing [Render Workflows](https://docs.render.com/workflows) with a v
 
 1. **Customer starts a call** — connects to a LiveKit voice AI agent through the browser.
 2. **Agent collects info** — phone number, location, damage description, zip code.
-3. **Call ends** — the API triggers `process_claim`, the orchestrator workflow task.
+3. **Claim is submitted in-call** — after required details are collected (or demo override is used), the API triggers `process_claim`.
 4. **Background processing** — subtasks run (some in parallel), and progress updates appear in the UI:
    - Verify policy
    - Analyze damage + fraud check (parallel)
@@ -63,11 +63,12 @@ A demo showcasing [Render Workflows](https://docs.render.com/workflows) with a v
 
 1. Fork or push this repo to GitHub.
 2. In the [Render Dashboard](https://dashboard.render.com/), switch to your dedicated workspace and click **New** > **Blueprint**.
-3. Connect your GitHub repo — Render creates the frontend, API, agent, and workflow services from `render.yaml`.
+3. Connect your GitHub repo — Render creates the frontend, API, and agent services from `render.yaml`.
 4. Verify service names:
    - `voice-agent-ts-frontend`
    - `voice-agent-ts-api`
    - `voice-agent-ts-agent`
+5. Create a Render Workflows service in the same workspace (using the `workflows/` directory as root), then copy its slug into `WORKFLOW_SERVICE_ID`.
 
 ### Configure environment groups
 
@@ -80,6 +81,14 @@ The Blueprint references three environment groups. Create them in the Render Das
 | `ai-config` | `OPENAI_API_KEY` | [OpenAI API keys](https://platform.openai.com/api-keys) |
 
 `WORKFLOW_SERVICE_ID` is the slug of your Render Workflows service (visible in the Dashboard URL).
+
+### Voice demo fast path
+
+For quicker manual testing without answering the full intake sequence, start a call and say:
+
+- `"My name is Demo Driver."`
+
+The agent will auto-fill a default demo claim profile and immediately submit the claim.
 
 ### Dedicated workspace checklist
 
