@@ -387,7 +387,11 @@ app.get("/api/health", (_req: Request, res: Response) => {
   res.json({ status: "healthy" });
 });
 
-app.post("/api/token", async (req: Request, res: Response) => {
+async function issueLiveKitToken(
+  roomNameInput: string | undefined,
+  participantNameInput: string | undefined,
+  res: Response
+): Promise<Response> {
   const livekitUrl = process.env.LIVEKIT_URL;
   const apiKey = process.env.LIVEKIT_API_KEY;
   const apiSecret = process.env.LIVEKIT_API_SECRET;
@@ -395,8 +399,8 @@ app.post("/api/token", async (req: Request, res: Response) => {
     return res.status(500).json({ detail: "LiveKit not configured" });
   }
 
-  const participantName = req.body?.participant_name ?? "customer";
-  const roomName = req.body?.room_name ?? `claim-${randomUUID().slice(0, 8)}`;
+  const participantName = participantNameInput ?? "customer";
+  const roomName = roomNameInput ?? `claim-${randomUUID().slice(0, 8)}`;
   const token = new AccessToken(apiKey, apiSecret, {
     identity: participantName,
     name: participantName,
@@ -408,6 +412,18 @@ app.post("/api/token", async (req: Request, res: Response) => {
     room_name: roomName,
     livekit_url: livekitUrl,
   });
+}
+
+app.post("/api/token", async (req: Request, res: Response) => {
+  return issueLiveKitToken(req.body?.room_name, req.body?.participant_name, res);
+});
+
+// Compatibility path: some deployments issue GET /api/token.
+app.get("/api/token", async (req: Request, res: Response) => {
+  const roomName = typeof req.query.room_name === "string" ? req.query.room_name : undefined;
+  const participantName =
+    typeof req.query.participant_name === "string" ? req.query.participant_name : undefined;
+  return issueLiveKitToken(roomName, participantName, res);
 });
 
 app.post("/api/claims", async (req: Request, res: Response) => {
