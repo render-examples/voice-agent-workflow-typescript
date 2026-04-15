@@ -68,6 +68,11 @@ function getApiUrl(): string {
     if (apiUrl.startsWith("http://") || apiUrl.startsWith("https://")) {
       return apiUrl;
     }
+    // Render may inject an internal host (e.g. "voice-agent-ts-api") for service-to-service.
+    if (!apiUrl.includes(".")) {
+      const internalPort = process.env.API_PORT ?? "10000";
+      return `http://${apiUrl}:${internalPort}`;
+    }
     return `https://${apiUrl}`;
   }
 
@@ -112,11 +117,16 @@ async function updateSession(roomName: string, field: string, value: string): Pr
 }
 
 async function lookupCustomer(phone: string): Promise<Record<string, unknown> | null> {
-  const response = await fetch(`${getApiUrl()}/api/customer/lookup/${encodeURIComponent(phone)}`);
-  if (!response.ok) {
+  try {
+    const response = await fetch(`${getApiUrl()}/api/customer/lookup/${encodeURIComponent(phone)}`);
+    if (!response.ok) {
+      return null;
+    }
+    return (await response.json()) as Record<string, unknown>;
+  } catch (error) {
+    console.error("[agent] lookupCustomer failed:", error);
     return null;
   }
-  return (await response.json()) as Record<string, unknown>;
 }
 
 async function submitClaim(payload: Record<string, unknown>): Promise<string> {
