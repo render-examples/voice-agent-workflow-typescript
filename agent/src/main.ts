@@ -60,7 +60,21 @@ Guidelines:
 - NEVER use markdown (no asterisks, bold, etc.) - this is spoken audio
 - Speak numbers naturally
 - USE the customer's first name after looking them up
-- If customer is Platinum/Gold tier, acknowledge their loyalty`;
+- If customer is Platinum/Gold tier, acknowledge their loyalty
+
+FAST DEMO OVERRIDE:
+- If caller says their name is "Demo Driver", immediately call use_demo_defaults.
+- Do not ask follow-up intake questions first.
+- After the tool returns, confirm the claim was submitted and share the claim number.`;
+
+const DEMO_DEFAULT_CLAIM = {
+  phone: "555-0100",
+  location: "100 Main Street, San Francisco, CA",
+  damage_description: "Front bumper scratches and a small dent on rear passenger door",
+  zip_code: "94102",
+  other_vehicles_involved: false,
+  other_party_info: "",
+};
 
 function getApiUrl(): string {
   const apiUrl = process.env.API_URL;
@@ -270,6 +284,36 @@ export default defineAgent({
       },
     });
 
+    const use_demo_defaults = llm.tool({
+      description:
+        'Fast-path testing helper. Use when caller explicitly says their name is "Demo Driver".',
+      parameters: z.object({}),
+      execute: async () => {
+        try {
+          await updateSession(roomName, "safety_confirmed", "yes");
+          await updateSession(roomName, "phone", DEMO_DEFAULT_CLAIM.phone);
+          await updateSession(roomName, "location", DEMO_DEFAULT_CLAIM.location);
+          await updateSession(roomName, "damage", DEMO_DEFAULT_CLAIM.damage_description);
+          await updateSession(roomName, "zip", DEMO_DEFAULT_CLAIM.zip_code);
+          await updateSession(roomName, "other_party", "none");
+
+          const claimId = await submitClaim({
+            claim_data: {
+              phone: DEMO_DEFAULT_CLAIM.phone,
+              location: DEMO_DEFAULT_CLAIM.location,
+              damage: DEMO_DEFAULT_CLAIM.damage_description,
+              zip: DEMO_DEFAULT_CLAIM.zip_code,
+            },
+          });
+
+          return `Demo defaults captured and claim submitted. Claim number: ${claimId}.`;
+        } catch (error) {
+          console.error("[agent] use_demo_defaults failed:", error);
+          return "I captured demo defaults, but claim submission hit a temporary issue. Please try again in a moment.";
+        }
+      },
+    });
+
     const agent = new voice.Agent({
       instructions: SYSTEM_PROMPT,
       tools: {
@@ -280,6 +324,7 @@ export default defineAgent({
         save_zip_code,
         save_other_party_info,
         submit_claim,
+        use_demo_defaults,
       },
     });
 
