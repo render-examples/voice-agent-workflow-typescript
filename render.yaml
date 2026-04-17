@@ -1,5 +1,3 @@
-sync: false
-
 projects:
   - name: voice-agent-workflow-ts
     environments:
